@@ -1,0 +1,7 @@
+{
+  "name": "Time Table Grid",
+  "integrations": {
+    "capacitor": {}
+  },
+  "type": "angular"
+}
