@@ -7,15 +7,15 @@ ion-menu-button {
 }
 
 #container strong {
-  font-size: 20px;
+  font-size  : 20px;
   line-height: 26px;
 }
 
 #container p {
-  font-size: 16px;
+  font-size  : 16px;
   line-height: 22px;
-  color: #8c8c8c;
-  margin: 0;
+  color      : #8c8c8c;
+  margin     : 0;
 }
 
 #container a {
@@ -23,21 +23,67 @@ ion-menu-button {
 }
 
 .dropper {
-  min-height: 60px;
+  // min-height: 60px;
   // width: 100%;
-  border: 1px solid blue;
+  // border    : 1px solid blue;
+  padding: 3px;
 }
 
 .teacher {
-  width: 130px;
-  height: 130px;
-  display: flex;
-  align-items: center;
+  width          : 130px;
+  height         : 130px;
+  display        : flex;
+  align-items    : center;
   justify-content: center;
-  flex-direction:column;
-  text-align: center;
+  flex-direction : column;
+  text-align     : center;
 }
 
 .handles {
   cursor: grab;
+}
+
+.p-placeholder {
+  background: repeating-linear-gradient(-55deg,
+      #222,
+      #222 10px,
+      #333 10px,
+      #333 20px);
+  height         : 78px;
+  width          : 100%;
+  display        : flex;
+  align-items    : center;
+  justify-content: center;
+  color          : #8c8c8c;
+  font-weight    : 700;
+}
+
+.drag-over {
+  .p-placeholder {
+    display: none;
+  }
+}
+
+.allowedDrop {
+  // border: 1px solid green;
+  &.p-placeholder {
+    background: repeating-linear-gradient(-55deg,
+        #2e4915,
+        #2e4915 10px,
+        #333 10px,
+        #333 20px);
+        color: white;
+  }
+}
+
+.invalidDrop {
+  // border: 1px solid red;
+  &.p-placeholder {
+    background: repeating-linear-gradient(-55deg,
+        #4d1b1b,
+        #4d1b1b 10px,
+        #333 10px,
+        #333 20px);
+        color: white;
+  }
 }

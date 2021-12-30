@@ -3,6 +3,10 @@ import { ActivatedRoute } from '@angular/router';
 import { IonReorderGroup, ItemReorderEventDetail } from '@ionic/angular';
 import { DragulaService } from 'ng2-dragula';
 import { Subscription } from 'rxjs';
+import { Platform } from '@ionic/angular';
+import { Timetable } from '../timetable';
+import { DptServiceService } from '../dpt-service.service';
+
 
 @Component({
   selector: 'app-folder',
@@ -21,28 +25,28 @@ export class FolderPage implements OnInit {
       name: 'Mr. Nice',
       subject: 'Math',
       grade: 'A',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=1',
       id: 1
     },
     {
       name: 'Narco',
       subject: 'Science',
       grade: 'B',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=2',
       id: 2
     },
     {
       name: 'Bombasto',
       subject: 'English',
       grade: 'C',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=3',
       id: 3
     },
     {
       name: 'Celeritas',
       subject: 'Math',
       grade: 'D',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=4',
       id: 4
     },
     {
@@ -50,101 +54,149 @@ export class FolderPage implements OnInit {
       name: 'Magneta',
       subject: 'Science',
       grade: 'E',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=5',
       id: 5
     },
     {
       name: 'RubberMan',
       subject: 'English',
       grade: 'F',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=6',
       id: 6
     },
     {
       name: 'Dynama',
       subject: 'Math',
       grade: 'G',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=7',
       id: 7
     },
     {
       name: 'Dr IQ',
       subject: 'Science',
       grade: 'H',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=8',
       id: 8
     },
     {
       name: 'Magma',
       subject: 'English',
       grade: 'I',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=9',
       id: 9
     },
     {
       name: 'Tornado',
       subject: 'Math',
       grade: 'J',
-      image: 'https://i.pravatar.cc/40',
+      image: 'https://i.pravatar.cc/40?u=10',
       id: 10
     }
   ];
 
   allocs: any = [];
 
-  timetable = {
-    classId: 0,
-    className: 'Class 1',
-    hoursCount: 6,
-    date: new Date(),
-    allocation: null
-  };
+  timetable: Timetable;
 
   subs = new Subscription();
 
+  isApp = false;
+
+  dragulaName = `${Math.random()}`;
+
+  allowedDrops: number[] = [];
+
+  dragging = false;
+
   constructor(
     private activatedRoute: ActivatedRoute,
-    private dragulaService: DragulaService
+    private dragulaService: DragulaService,
+    public platform: Platform,
+    public dptService: DptServiceService
   ) {
-    dragulaService.createGroup('teachers', {
+    this.dragulaService.createGroup(this.dragulaName, {
       moves: (el, container, handle) => handle.className.includes('handles'),
-      copy: (el, source) => source.id !== 'scheduleGgrid',
-      accepts: (el, target, source, sibling) => true,
-      copyItem: (item) => {
-        console.log(this.allocs);
-        const itemVal = {
-          name: item.name,
-          subject: item.subject,
-          grade: item.grade,
-          image: item.image,
-          id: item.id
-        };
-        this.allocs.push(itemVal);
-        return itemVal;
-      }
-    });
-    this.subs.add(dragulaService.drop('teachers')
-      .subscribe(({ el, target }) => {
-        console.log('drag', el);
-        if (target.id === 'scheduleGgrid') {
-          el.setAttribute('size-lg', '12');
-          el.classList.remove('non-dropped');
-          el.classList.add('dropped');
-        } else {
-          el.setAttribute('size-lg', '3');
-          el.classList.remove('dropped');
-          el.classList.add('non-dropped');
+      copy: true,
+      accepts: (el, target, source, sibling) => {
+        if (!this.timetable.allocation[target.id.split('-')[1]]) {
+          return true;
         }
+        return false;
+      },
+      copyItem: (item) => item
+    });
+    this.subs.add(dragulaService.drop(this.dragulaName)
+      .subscribe(({ el, target, source }) => {
+        this.dragging = false;
+        this.allowedDrops = [];
+        if (target) {
+          this.timetable.allocation[target?.id.split('-')[1]] = el?.id;
+        }
+        console.log(this.dptService.checkAlreadyAssigned(Number(target?.id.split('-')[1]), el?.id, this.folder));
+        // console.log(this.timetable);
       })
     );
+    this.subs.add(dragulaService.over(this.dragulaName)
+      .subscribe(({ el, container }) => {
+        // console.log('over', container);
+        container.classList.add('drag-over');
+      })
+    );
+    this.subs.add(dragulaService.out(this.dragulaName)
+      .subscribe(({ el, container }) => {
+        // console.log('out', container);
+        container.classList.remove('drag-over');
+      })
+    );
+    this.subs.add(dragulaService.drag(this.dragulaName)
+      .subscribe(({ el, source }) => {
+        console.log('out');
+        this.dragging = true;
+        this.allowedDrops = this.dptService.getAllAssignedTeacherForEachPeriodsOfToday(el?.id, this.folder);
+      })
+    );
+    if (this.platform.is('mobile')) {
+      this.isApp = true;
+    } else {
+      this.isApp = false;
+    }
   }
 
   ngOnInit() {
     this.folder = this.activatedRoute.snapshot.paramMap.get('id');
+    const existing = this.dptService.getClassById(this.folder);
+    if (existing) {
+      this.timetable = existing;
+    } else {
+      this.timetable = {
+        classId: this.folder,
+        className: 'Class 1',
+        hoursCount: 4,
+        date: new Date(),
+        allocation: {}
+      };
+    }
   }
 
-  dropped() {
-    console.log(this.timetable.allocation);
+  getNthPeriod(n: number) {
+    const tid = this.timetable.allocation[n];
+    if (tid) {
+      const teacher = this.teacherList.find(t => t.id === Number(tid));
+      return teacher;
+    }
+    return null;
+  }
+
+  ionViewDidLeave() {
+    this.subs.unsubscribe();
+  }
+
+  deleteItem(n: number) {
+    delete this.timetable.allocation[n];
+  }
+
+  submitTimeTable() {
+    this.dptService.saveClass(this.timetable);
   }
 
 }

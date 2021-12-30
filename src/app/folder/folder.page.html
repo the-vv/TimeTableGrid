@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>{{ folder }}</ion-title>
+    <ion-title>{{ folder?.replace('-', ' ') }}</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -16,14 +16,17 @@
 
   <div id="container">
     <ion-grid>
+      <!-- <ion-list-header><span>Available Teachers</span></ion-list-header> -->
       <ion-row>
         <ion-col size="12">
-          <ion-row dragula="teachers" [dragulaModel]='teacherList'>
-            <ion-col *ngFor="let t of teacherList; let i = index;" size="6" size-lg="3" size-md="4" class="non-dropped">
+          <ion-row [dragula]="dragulaName" [dragulaModel]='teacherList' [class]="isApp ? 'ion-nowrap' : ''"
+            style="overflow-x: auto;">
+            <ion-col *ngFor="let t of teacherList; let i = index;" size="7" size-lg="3" size-md="4" class="non-dropped"
+              [id]="t.id">
               <ion-item>
                 <ion-icon name="pause-outline" class="handles" slot="end"></ion-icon>
                 <ion-avatar slot="start">
-                  <img [src]="t.image + '?u=' + i" />
+                  <img [src]="t.image" />
                 </ion-avatar>
                 <ion-label>
                   <h2>{{t.name}}</h2>
@@ -33,21 +36,29 @@
             </ion-col>
           </ion-row>
         </ion-col>
+
         <ion-col size="12">
-          <ion-row dragula="teachers" [dragulaModel]='allocs' class="dropper" id="scheduleGgrid"
-            *ngFor="let i of let e of [].constructor(timetable.hoursCount)">
-            <ion-col *ngFor="let t of allocs"  size="6" size-lg="12">
+          <ion-row [dragula]="dragulaName" [dragulaModel]='allocs' class="dropper" [id]="'period-' + i"
+            *ngFor="let _ of let e of [].constructor(timetable.hoursCount); let i = index;">
+            <ion-col size="12" size-lg="12" *ngIf="getNthPeriod(i); else periodPlaceholder">
               <ion-item>
-                <ion-icon name="trash-outline" class="close-icon" slot="end"></ion-icon>
+                <ion-icon name="trash-outline" class="close-icon" slot="end" style="cursor: pointer;"
+                  (click)="deleteItem(i)"></ion-icon>
                 <ion-avatar slot="start">
-                  <img [src]="t.image + '?u=' + i" />
+                  <img [src]="getNthPeriod(i)?.image" />
                 </ion-avatar>
                 <ion-label>
-                  <h2>{{t.name}}</h2>
-                  <p>{{t.subject}}</p>
+                  <h2>{{getNthPeriod(i)?.name}}</h2>
+                  <p>{{getNthPeriod(i)?.subject}}</p>
                 </ion-label>
               </ion-item>
             </ion-col>
+            <ng-template #periodPlaceholder>
+              <div class="p-placeholder"
+                [ngClass]="{ allowedDrop: dragging && allowedDrops.indexOf(i) < 0, invalidDrop: dragging && allowedDrops.indexOf(i) >= 0}">
+                Period {{i + 1}}
+              </div>
+            </ng-template>
           </ion-row>
         </ion-col>
       </ion-row>
@@ -55,3 +66,6 @@
   </div>
   <!-- </div> -->
 </ion-content>
+<ion-footer>
+  <ion-button expand="block" (click)="submitTimeTable()">Save</ion-button>
+</ion-footer>
