@@ -1,11 +1,12 @@
-import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { AlertController } from '@ionic/angular';
+import { AlertController, IonRouterOutlet, ToastController } from '@ionic/angular';
 import { DragulaService } from 'ng2-dragula';
 import { Subscription } from 'rxjs';
 import { Platform } from '@ionic/angular';
 import { Timetable } from '../timetable';
 import { DptServiceService } from '../dpt-service.service';
+import { App } from '@capacitor/app';
 
 
 @Component({
@@ -115,8 +116,15 @@ export class FolderPage implements OnInit {
     private dragulaService: DragulaService,
     public platform: Platform,
     public dptService: DptServiceService,
-    public alertController: AlertController
+    public alertController: AlertController,
+    private routerOutlet: IonRouterOutlet,
+    public toastController: ToastController
   ) {
+    this.platform.backButton.subscribeWithPriority(-1, () => {
+      if (!this.routerOutlet.canGoBack()) {
+        App.exitApp();
+      }
+    });
     this.dragulaService.createGroup(this.dragulaName, {
       moves: (el, container, handle) => handle.className.includes('handles'),
       copy: true,
@@ -228,6 +236,16 @@ export class FolderPage implements OnInit {
   submitTimeTable() {
     this.timetable.date = this.dptService.selectedDate;
     this.dptService.saveClass(this.timetable);
+    this.showMessge(`Time Table Saved for ${this.timetable.className}`);
+  }
+
+  async showMessge(message: string) {
+    const toast = await this.toastController.create({
+      message,
+      duration: 2000,
+      color: 'light'
+    });
+    toast.present();
   }
 
 }

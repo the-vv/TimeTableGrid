@@ -3,7 +3,7 @@
     <ion-buttons slot="start">
       <ion-menu-button></ion-menu-button>
     </ion-buttons>
-    <ion-title>{{ folder?.replace('-', ' ') }} - TimeTable Grid</ion-title>
+    <ion-title>{{ folder?.replace('-', ' ') }} - Time Table Grid</ion-title>
   </ion-toolbar>
 </ion-header>
 
@@ -21,7 +21,7 @@
       <ion-row>
         <ion-col size="12" id="sticky">
           <ion-row [dragula]="dragulaName" [dragulaModel]='teacherList' [class]="isApp ? 'ion-nowrap' : ''"
-            style="overflow: auto; max-height: 300px;">
+            [style]="{ overflow: dragging ? 'hidden' : 'auto', 'max-height': '300px' }">
             <ion-col *ngFor="let t of teacherList; let i = index;" size="7" size-lg="3" size-md="4" class="non-dropped"
               [id]="t.id">
               <ion-item>
