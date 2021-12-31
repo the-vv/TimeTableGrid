@@ -11,16 +11,17 @@
   <ion-header collapse="condense">
     <ion-toolbar>
       <ion-title size="large">{{ folder }}</ion-title>
+
     </ion-toolbar>
   </ion-header>
 
-  <div id="container">
+  <div id="container" [style]="{ overflow: dragging ? 'hidden' : 'auto' }">
     <ion-grid>
-      <!-- <ion-list-header><span>Available Teachers</span></ion-list-header> -->
+      <ion-list-header><span>Available Tutors</span></ion-list-header>
       <ion-row>
-        <ion-col size="12">
+        <ion-col size="12" id="sticky">
           <ion-row [dragula]="dragulaName" [dragulaModel]='teacherList' [class]="isApp ? 'ion-nowrap' : ''"
-            style="overflow-x: auto;">
+            style="overflow: auto; max-height: 300px;">
             <ion-col *ngFor="let t of teacherList; let i = index;" size="7" size-lg="3" size-md="4" class="non-dropped"
               [id]="t.id">
               <ion-item>
@@ -36,13 +37,12 @@
             </ion-col>
           </ion-row>
         </ion-col>
-
-        <ion-col size="12">
+        <ion-col size="12" id="hourList" style="overflow: auto;">
           <ion-row [dragula]="dragulaName" [dragulaModel]='allocs' class="dropper" [id]="'period-' + i"
             *ngFor="let _ of let e of [].constructor(timetable.hoursCount); let i = index;">
             <ion-col size="12" size-lg="12" *ngIf="getNthPeriod(i); else periodPlaceholder">
               <ion-item>
-                <ion-icon name="trash-outline" class="close-icon" slot="end" style="cursor: pointer;"
+                <ion-icon name="trash-outline" class="close-icon" slot="end" style="cursor: pointer;" color="danger"
                   (click)="deleteItem(i)"></ion-icon>
                 <ion-avatar slot="start">
                   <img [src]="getNthPeriod(i)?.image" />
@@ -55,8 +55,8 @@
             </ion-col>
             <ng-template #periodPlaceholder>
               <div class="p-placeholder"
-                [ngClass]="{ allowedDrop: dragging && allowedDrops.indexOf(i) < 0, invalidDrop: dragging && allowedDrops.indexOf(i) >= 0}">
-                Period {{i + 1}}
+                [ngClass]="{ allowedDrop: dragging && nonAllowedDrop.indexOf(i) < 0, invalidDrop: dragging && nonAllowedDrop.indexOf(i) >= 0}">
+                Hour {{i + 1}}
               </div>
             </ng-template>
           </ion-row>

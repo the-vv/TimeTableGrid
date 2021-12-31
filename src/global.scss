@@ -26,3 +26,9 @@
 @import "~@ionic/angular/css/flex-utils.css";
 
 @import "./dragula.scss";
+
+
+
+.alert-wrapper.sc-ion-alert-md {
+    max-width: unset!important;
+  }

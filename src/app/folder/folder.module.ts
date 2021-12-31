@@ -8,6 +8,7 @@ import { FolderPageRoutingModule } from './folder-routing.module';
 
 import { FolderPage } from './folder.page';
 import { DragulaModule, DragulaService } from 'ng2-dragula';
+import {SplitterModule} from 'primeng/splitter';
 
 
 @NgModule({
@@ -16,7 +17,8 @@ import { DragulaModule, DragulaService } from 'ng2-dragula';
     FormsModule,
     IonicModule,
     FolderPageRoutingModule,
-    DragulaModule.forRoot()
+    DragulaModule.forRoot(),
+    SplitterModule
   ],
   declarations: [FolderPage],
   providers: [

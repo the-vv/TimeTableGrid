@@ -87,3 +87,18 @@ ion-menu-button {
         color: white;
   }
 }
+
+#container {
+  height: calc(100vh - 44px - 57px);
+  // overflow: hidden;
+}
+
+
+#sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 0;
+  z-index: 2;
+  background: var(--ion-background-color);
+  border-bottom: 1px solid var(--ion-color-step-150, #d7d8da);
+}

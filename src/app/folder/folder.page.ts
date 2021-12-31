@@ -1,6 +1,6 @@
-import { Component, OnInit, ViewChild } from '@angular/core';
+import { AfterViewInit, Component, ElementRef, OnInit, ViewChild } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { IonReorderGroup, ItemReorderEventDetail } from '@ionic/angular';
+import { AlertController } from '@ionic/angular';
 import { DragulaService } from 'ng2-dragula';
 import { Subscription } from 'rxjs';
 import { Platform } from '@ionic/angular';
@@ -14,6 +14,7 @@ import { DptServiceService } from '../dpt-service.service';
   styleUrls: ['./folder.page.scss'],
 })
 export class FolderPage implements OnInit {
+
   public folder: string;
 
   text: string;
@@ -104,7 +105,8 @@ export class FolderPage implements OnInit {
 
   dragulaName = `${Math.random()}`;
 
-  allowedDrops: number[] = [];
+  nonAllowedDrop: number[] = [];
+  tutorAssignedClassDetails: any[] = [];
 
   dragging = false;
 
@@ -112,7 +114,8 @@ export class FolderPage implements OnInit {
     private activatedRoute: ActivatedRoute,
     private dragulaService: DragulaService,
     public platform: Platform,
-    public dptService: DptServiceService
+    public dptService: DptServiceService,
+    public alertController: AlertController
   ) {
     this.dragulaService.createGroup(this.dragulaName, {
       moves: (el, container, handle) => handle.className.includes('handles'),
@@ -128,12 +131,19 @@ export class FolderPage implements OnInit {
     this.subs.add(dragulaService.drop(this.dragulaName)
       .subscribe(({ el, target, source }) => {
         this.dragging = false;
-        this.allowedDrops = [];
-        if (target) {
+        this.nonAllowedDrop = [];
+        const isDropNotAllowed = this.dptService.checkAlreadyAssigned(Number(target?.id.split('-')[1]), el?.id, this.folder);
+        if (target && !isDropNotAllowed) {
           this.timetable.allocation[target?.id.split('-')[1]] = el?.id;
+        } else if(target) {
+          const classesAssigned = this.tutorAssignedClassDetails.filter(item => {
+            if (item.allocation[target?.id.split('-')[1]] === el?.id) {
+              return true;
+            }
+            return false;
+          });
+          this.showWarning(classesAssigned[0].className, Number(target?.id.split('-')[1]) + 1);
         }
-        console.log(this.dptService.checkAlreadyAssigned(Number(target?.id.split('-')[1]), el?.id, this.folder));
-        // console.log(this.timetable);
       })
     );
     this.subs.add(dragulaService.over(this.dragulaName)
@@ -150,9 +160,12 @@ export class FolderPage implements OnInit {
     );
     this.subs.add(dragulaService.drag(this.dragulaName)
       .subscribe(({ el, source }) => {
-        console.log('out');
+        // console.log('out');
         this.dragging = true;
-        this.allowedDrops = this.dptService.getAllAssignedTeacherForEachPeriodsOfToday(el?.id, this.folder);
+        const { assignedClassDetails, assignesPeriods } = this.dptService.getAllAssignedTeacherForEachPeriodsOfToday(el?.id, this.folder);
+        this.nonAllowedDrop = assignesPeriods;
+        this.tutorAssignedClassDetails = assignedClassDetails;
+        // console.log(assignedClassDetails);
       })
     );
     if (this.platform.is('mobile')) {
@@ -162,16 +175,33 @@ export class FolderPage implements OnInit {
     }
   }
 
+  async showWarning(className: string, hour: number) {
+    const alert = await this.alertController.create({
+      cssClass: 'my-custom-class',
+      header: 'Already Assigned',
+      subHeader: 'Droping here is not alllowed',
+      message: `Class '${className}' is already assigned with this tutotor on hour ${hour}`,
+      buttons: ['OK']
+    });
+    alert.present();
+  }
+
   ngOnInit() {
     this.folder = this.activatedRoute.snapshot.paramMap.get('id');
+    this.dptService.dateChanged$.subscribe(date => {
+      this.getCurrentTimetable();
+    });
+  }
+
+  getCurrentTimetable() {
     const existing = this.dptService.getClassById(this.folder);
     if (existing) {
       this.timetable = existing;
     } else {
       this.timetable = {
         classId: this.folder,
-        className: 'Class 1',
-        hoursCount: 4,
+        className: this.folder,
+        hoursCount: 6,
         date: new Date(),
         allocation: {}
       };
@@ -196,6 +226,7 @@ export class FolderPage implements OnInit {
   }
 
   submitTimeTable() {
+    this.timetable.date = this.dptService.selectedDate;
     this.dptService.saveClass(this.timetable);
   }
 
