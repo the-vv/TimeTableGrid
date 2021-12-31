@@ -180,7 +180,7 @@ export class FolderPage implements OnInit {
       cssClass: 'my-custom-class',
       header: 'Already Assigned',
       subHeader: 'Droping here is not alllowed',
-      message: `Class '${className}' is already assigned with this tutoor on hour ${hour}`,
+      message: `Class '${className}' is already assigned with this tutor on hour ${hour}`,
       buttons: ['OK']
     });
     alert.present();
